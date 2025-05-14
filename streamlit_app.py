@@ -10,6 +10,8 @@ import os
 from dotenv import load_dotenv
 # === Configuration ===
 
+FIREBASE_WEB_API_KEY = os.getenv("FIREBASE_WEB_API_KEY")
+FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_WEB_API_KEY}"
 
 ROLES = ["Registration", "Student", "Teacher", "Admin", None]
 
