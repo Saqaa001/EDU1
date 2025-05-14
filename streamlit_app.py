@@ -1,44 +1,50 @@
 import streamlit as st
 import requests
+import pandas as pd
+import json
 from streamlit_cookies_manager import EncryptedCookieManager
 from uuid import uuid4
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 import os
+from dotenv import load_dotenv
 # === Configuration ===
-SERVICE_ACCOUNT_FILE = ".streamlit/firebase.json"
-FIREBASE_WEB_API_KEY = "AIzaSyCj0UPv444P-C6ggFZ8Q_NXvSSBraHeDG4"
-FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_WEB_API_KEY}"
-
 
 
 ROLES = ["Registration", "Student", "Teacher", "Admin", None]
-@st.cache_resource
-def init_firebase():
-    try:
-        # Check if Firebase app is already initialized
-        if not firebase_admin._apps:
-            # Verify service account file exists
-            if not os.path.exists(SERVICE_ACCOUNT_FILE):
-                raise FileNotFoundError(f"Firebase service account file not found at: {SERVICE_ACCOUNT_FILE}")
-            
-            # Initialize Firebase
-            cred = credentials.Certificate(SERVICE_ACCOUNT_FILE)
-            firebase_admin.initialize_app(cred)
-            st.success("Firebase initialized successfully!")
-        
-        return firestore.client()
-    
-    except Exception as e:
-        st.error(f"🔥 Firebase initialization failed: {str(e)}")
-        st.stop()  # Stop the app if Firebase fails to initialize
+ Load environment variables
+load_dotenv()
+
+# Construct credential dict from env vars
+firebase_config = {
+    "type": os.getenv("FIREBASE_TYPE"),
+    "project_id": os.getenv("FIREBASE_PROJECT_ID"),
+    "private_key_id": os.getenv("FIREBASE_PRIVATE_KEY_ID"),
+    "private_key": os.getenv("FIREBASE_PRIVATE_KEY").replace("\\n", "\n"),
+    "client_email": os.getenv("FIREBASE_CLIENT_EMAIL"),
+    "client_id": os.getenv("FIREBASE_CLIENT_ID"),
+    "auth_uri": os.getenv("FIREBASE_AUTH_URI"),
+    "token_uri": os.getenv("FIREBASE_TOKEN_URI"),
+    "auth_provider_x509_cert_url": os.getenv("FIREBASE_AUTH_PROVIDER_X509_CERT_URL"),
+    "client_x509_cert_url": os.getenv("FIREBASE_CLIENT_X509_CERT_URL")
+}
 
 # Initialize Firebase
-SERVICE_ACCOUNT_FILE = ".streamlit/firebase.json"  # Verify this path is correct
+if not firebase_admin._apps:
+    cred = credentials.Certificate(firebase_config)
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client()
 
 
+# --- Firebase Init ---
+if not firebase_admin._apps:
+    cred = credentials.Certificate(".streamlit/firebase.json")
+    firebase_admin.initialize_app(cred)
+    
+db = firestore.client()
 
-db = init_firebase()
+db = firestore.client()
 if db not in st.session_state:
     st.session_state['db'] = db
 
