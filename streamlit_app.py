@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 
 ROLES = ["Registration", "Student", "Teacher", "Admin", None]
- Load environment variables
+
 load_dotenv()
 
 # Construct credential dict from env vars
