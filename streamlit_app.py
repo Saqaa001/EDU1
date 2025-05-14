@@ -18,8 +18,26 @@ ROLES = ["Registration", "Student", "Teacher", "Admin", None]
 @st.cache_resource
 def init_firebase():
     if not firebase_admin._apps:
-        cred = credentials.Certificate(SERVICE_ACCOUNT_FILE)
-        firebase_admin.initialize_app(cred)
+        try:
+            # Make sure SERVICE_ACCOUNT_FILE is either a dictionary or a valid file path
+            if isinstance(SERVICE_ACCOUNT_FILE, dict):
+                cred = credentials.Certificate(SERVICE_ACCOUNT_FILE)
+            else:
+                # Verify the file exists and is valid JSON
+                with open(SERVICE_ACCOUNT_FILE) as f:
+                    json.load(f)  # Validate JSON
+                cred = credentials.Certificate(SERVICE_ACCOUNT_FILE)
+                
+            firebase_admin.initialize_app(cred)
+        except json.JSONDecodeError as e:
+            st.error("Invalid JSON in service account file")
+            raise
+        except FileNotFoundError:
+            st.error("Service account file not found")
+            raise
+        except Exception as e:
+            st.error(f"Failed to initialize Firebase: {str(e)}")
+            raise
     return firestore.client()
 
 db = init_firebase()
